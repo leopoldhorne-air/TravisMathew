@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Air | TravisMathew — Workflow Analysis</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500;1,600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --black:#0a0a0a;--white:#fafafa;--gray-50:#f7f7f5;--gray-100:#eeedeb;
+  --gray-200:#d8d7d3;--gray-300:#b8b7b3;--gray-400:#8a8985;--gray-500:#6b6a67;
+  --gray-600:#4a4a47;--gray-700:#2e2e2c;--gray-800:#1a1a19;
+  --green:#0F6E56;--green-light:#E1F5EE;--green-dark:#085041;
+  --red:#d44;--red-light:#fef2f2;--red-dark:#7a1f1f;
+  --amber:#854F0B;--amber-light:#FAEEDA;
+  --coral:#993C1D;--coral-light:#FAECE7;
+}
+html{font-size:16px;scroll-behavior:smooth}
+body{font-family:'Inter',system-ui,sans-serif;color:var(--gray-700);background:var(--white);line-height:1.6;-webkit-font-smoothing:antialiased}
+
+.nav{position:sticky;top:0;z-index:100;background:rgba(10,10,10,0.95);backdrop-filter:blur(20px);border-bottom:1px solid rgba(255,255,255,0.06);padding:0 48px;height:64px;display:flex;align-items:center;justify-content:space-between}
+.nav-logos{display:flex;align-items:center;gap:20px}
+.logo-air{font-size:22px;font-weight:700;color:#fff;letter-spacing:-0.5px}
+.logo-divider{width:1px;height:28px;background:rgba(255,255,255,0.15)}
+.logo-tm{font-size:14px;font-weight:500;color:rgba(255,255,255,0.7);letter-spacing:2px;text-transform:uppercase}
+.nav-label{font-size:13px;color:rgba(255,255,255,0.4);font-weight:400;letter-spacing:0.5px}
+
+.hero{background:var(--black);color:#fff;padding:100px 48px 80px;text-align:center;position:relative;overflow:hidden}
+.hero::before{content:'';position:absolute;top:50%;left:50%;width:800px;height:800px;border-radius:50%;background:radial-gradient(circle,rgba(15,110,86,0.08) 0%,transparent 70%);transform:translate(-50%,-50%);pointer-events:none}
+.hero-eyebrow{font-size:12px;font-weight:600;letter-spacing:2.5px;text-transform:uppercase;color:rgba(255,255,255,0.35);margin-bottom:24px}
+.hero h1{font-size:clamp(42px,5.5vw,72px);font-weight:700;letter-spacing:-2px;line-height:1.05;margin-bottom:20px}
+.hero h1 em{font-style:italic;font-weight:300;color:rgba(255,255,255,0.6)}
+.hero-sub{font-size:18px;font-weight:300;color:rgba(255,255,255,0.45);max-width:560px;margin:0 auto;line-height:1.65}
+
+.legend-bar{background:var(--gray-50);border-bottom:1px solid var(--gray-200);padding:20px 48px;display:flex;align-items:center;gap:32px;position:sticky;top:64px;z-index:90}
+.legend-title{font-size:12px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--gray-400)}
+.legend-items{display:flex;gap:20px;flex-wrap:wrap}
+.legend-item{display:flex;align-items:center;gap:8px}
+.phase-badge{font-size:11px;font-weight:600;letter-spacing:0.8px;text-transform:uppercase;padding:4px 12px;border-radius:100px}
+.phase-badge.crawl{background:var(--green-light);color:var(--green)}
+.phase-badge.walk{background:var(--amber-light);color:var(--amber)}
+.phase-badge.run{background:var(--coral-light);color:var(--coral)}
+.legend-desc{font-size:12px;color:var(--gray-400)}
+
+.step-section{border-bottom:1px solid var(--gray-200);scroll-margin-top:140px}
+.step-header{padding:48px 48px 24px;display:flex;align-items:flex-start;gap:20px}
+.step-num{font-family:'DM Mono',monospace;font-size:48px;font-weight:500;color:var(--gray-200);line-height:1;letter-spacing:-2px;min-width:72px}
+.step-meta{flex:1}
+.step-meta h2{font-size:28px;font-weight:600;letter-spacing:-0.8px;color:var(--black);line-height:1.25;margin-bottom:8px}
+.step-meta h2 em{font-style:italic;font-weight:300;color:var(--gray-400)}
+
+.comparison{display:grid;grid-template-columns:1fr 1fr;margin:0 48px 48px;border-radius:16px;overflow:hidden;border:1px solid var(--gray-200)}
+.side{padding:36px 32px 40px}
+.side-current{background:var(--white);border-right:1px solid var(--gray-200)}
+.side-air{background:var(--gray-50)}
+.side-label{display:flex;align-items:center;gap:8px;margin-bottom:16px}
+.side-dot{width:8px;height:8px;border-radius:50%}
+.side-dot.current{background:var(--red)}
+.side-dot.air{background:var(--green)}
+.side-label-text{font-size:11px;font-weight:600;letter-spacing:1.2px;text-transform:uppercase}
+.side-label-text.current{color:var(--red)}
+.side-label-text.air{color:var(--green)}
+.side-desc{font-size:14px;color:var(--gray-500);line-height:1.7;margin-bottom:20px}
+
+.flow-steps{display:flex;flex-direction:column;gap:6px;margin-bottom:20px}
+.flow-step{display:flex;align-items:center;gap:10px;padding:9px 14px;border-radius:10px;font-size:13px;line-height:1.4}
+.flow-step.manual{background:rgba(212,68,68,0.05);border:1px solid rgba(212,68,68,0.18);color:var(--red-dark)}
+.flow-step.auto{background:rgba(15,110,86,0.05);border:1px solid rgba(15,110,86,0.18);color:var(--green-dark)}
+.flow-step.normal{background:rgba(0,0,0,0.02);border:1px solid var(--gray-200);color:var(--gray-600)}
+.flow-step-num{font-family:'DM Mono',monospace;font-size:10px;font-weight:500;opacity:0.35;min-width:16px}
+.flow-step-label{flex:1}
+.flow-badge{font-size:9px;font-weight:700;letter-spacing:0.6px;text-transform:uppercase;padding:2px 8px;border-radius:4px;flex-shrink:0}
+.flow-badge.manual{background:var(--red);color:#fff}
+.flow-badge.auto{background:var(--green);color:#fff}
+
+.diagram-wrap{margin:16px 0 20px;background:rgba(0,0,0,0.012);border:1px solid var(--gray-200);border-radius:12px;padding:6px;overflow:hidden}
+.diagram-wrap svg{display:block;width:100%}
+.diagram-wrap svg text{font-family:'Inter',system-ui,sans-serif}
+
+.points-title{font-size:11px;font-weight:600;letter-spacing:1px;text-transform:uppercase;margin-bottom:10px}
+.points-title.pain{color:var(--red)}
+.points-title.win{color:var(--green)}
+.points-list{display:flex;flex-direction:column;gap:7px}
+.point-item{display:flex;gap:10px;align-items:flex-start}
+.point-icon{font-size:13px;line-height:20px;flex-shrink:0;margin-top:1px}
+.point-icon.pain{color:var(--red)}
+.point-icon.win{color:var(--green)}
+.point-text{font-size:13px;line-height:1.55;color:var(--gray-500)}
+
+.summary{background:var(--black);color:#fff;padding:80px 48px}
+.summary h2{font-size:36px;font-weight:700;letter-spacing:-1.5px;margin-bottom:48px;text-align:center}
+.summary h2 em{font-style:italic;font-weight:300;color:rgba(255,255,255,0.4)}
+.summary-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:32px;max-width:1100px;margin:0 auto}
+.summary-card{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:16px;padding:32px}
+.summary-card h3{font-size:14px;font-weight:600;margin-bottom:4px;color:#fff}
+.summary-card .time{font-size:12px;color:rgba(255,255,255,0.3);margin-bottom:16px;font-weight:500}
+.summary-card p{font-size:13.5px;color:rgba(255,255,255,0.5);line-height:1.65}
+
+@media(max-width:900px){
+  .comparison{grid-template-columns:1fr}
+  .side-current{border-right:none;border-bottom:1px solid var(--gray-200)}
+  .summary-grid{grid-template-columns:1fr}
+  .nav,.hero,.legend-bar,.step-header,.summary{padding-left:24px;padding-right:24px}
+  .comparison{margin-left:24px;margin-right:24px}
+  .step-num{font-size:36px;min-width:56px}
+}
+</style>
+</head>
+<body>
+<nav class="nav">
+  <div class="nav-logos">
+    <span class="logo-air">Air</span>
+    <div class="logo-divider"></div>
+    <span class="logo-tm">TravisMathew</span>
+  </div>
+  <span class="nav-label">Workflow Analysis</span>
+</nav>
+
+<section class="hero">
+  <div class="hero-eyebrow">Prepared for TravisMathew &middot; March 2026</div>
+  <h1>Current workflow vs.<br><em>what's possible on Air.</em></h1>
+  <p class="hero-sub">A step-by-step comparison of your creative operations today and how each phase would work on Air &mdash; from content capture through distribution.</p>
+</section>
+
+<div class="legend-bar">
+  <span class="legend-title">Phases</span>
+  <div class="legend-items">
+    <div class="legend-item"><span class="phase-badge crawl">Crawl</span><span class="legend-desc">Immediate</span></div>
+    <div class="legend-item"><span class="phase-badge walk">Walk</span><span class="legend-desc">6 months</span></div>
+    <div class="legend-item"><span class="phase-badge run">Run</span><span class="legend-desc">1 year</span></div>
+  </div>
+</div>
+
+<!-- STEP 1 -->
+<section class="step-section">
+  <div class="step-header">
+    <span class="step-num">01</span>
+    <div class="step-meta"><h2>Jira ticket creation <em>&amp; workspace setup</em></h2><span class="phase-badge walk">Walk</span></div>
+  </div>
+  <div class="comparison">
+    <div class="side side-current">
+      <div class="side-label"><span class="side-dot current"></span><span class="side-label-text current">Today &mdash; current process</span></div>
+      <p class="side-desc">Amanda manually exports style data from Centric into Jira, creating a sample ticket per SKU. The coordinator then creates a Frame.io folder for each shoot and manually pastes the link into Jira. No automated connection exists between project management and content storage.</p>
+      <div class="flow-steps">
+        <div class="flow-step manual"><span class="flow-step-num">01</span><span class="flow-step-label">Export from Centric &rarr; create Jira ticket</span><span class="flow-badge manual">Manual</span></div>
+        <div class="flow-step manual"><span class="flow-step-num">02</span><span class="flow-step-label">Create Frame.io folder per shoot</span><span class="flow-badge manual">Manual</span></div>
+        <div class="flow-step manual"><span class="flow-step-num">03</span><span class="flow-step-label">Copy-paste Frame link into Jira ticket</span><span class="flow-badge manual">Manual</span></div>
+      </div>
+      <div class="diagram-wrap"><svg viewBox="0 0 460 170" xmlns="http://www.w3.org/2000/svg">
+        <defs><marker id="ag" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M2 2L8 5L2 8" fill="none" stroke="#b8b7b3" stroke-width="1.5" stroke-linecap="round"/></marker><marker id="ar" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M2 2L8 5L2 8" fill="none" stroke="#d44" stroke-width="1.5" stroke-linecap="round"/></marker><marker id="av" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M2 2L8 5L2 8" fill="none" stroke="#0F6E56" stroke-width="1.5" stroke-linecap="round"/></marker></defs>
+        <rect x="16" y="30" width="110" height="42" rx="8" fill="#f7f7f5" stroke="#d8d7d3" stroke-width="0.75"/><text x="71" y="55" text-anchor="middle" font-size="12" font-weight="600" fill="#2e2e2c">Centric</text>
+        <line x1="126" y1="51" x2="164" y2="51" stroke="#b8b7b3" stroke-width="1" marker-end="url(#ag)"/><text x="145" y="38" text-anchor="middle" font-size="9" fill="#b8b7b3">CSV</text>
+        <rect x="166" y="30" width="110" height="42" rx="8" fill="#f7f7f5" stroke="#d8d7d3" stroke-width="0.75"/><text x="221" y="55" text-anchor="middle" font-size="12" font-weight="600" fill="#2e2e2c">Jira</text>
+        <rect x="166" y="100" width="130" height="42" rx="8" fill="#fef2f2" stroke="rgba(212,68,68,0.25)" stroke-width="0.75"/><text x="231" y="125" text-anchor="middle" font-size="12" font-weight="600" fill="#7a1f1f">Frame.io</text>
+        <line x1="221" y1="72" x2="221" y2="98" stroke="#d44" stroke-width="1" stroke-dasharray="4 3" marker-end="url(#ar)"/><text x="260" y="90" font-size="9" fill="#d44">manual link</text>
+      </svg></div>
+      <div class="points-title pain">Pain points</div>
+      <div class="points-list">
+        <div class="point-item"><span class="point-icon pain">&times;</span><span class="point-text">Every shoot requires manual folder creation in Frame.io</span></div>
+        <div class="point-item"><span class="point-icon pain">&times;</span><span class="point-text">Frame links manually copied into Jira &mdash; error prone at 4,000+ SKUs</span></div>
+        <div class="point-item"><span class="point-icon pain">&times;</span><span class="point-text">No automated connection between Jira and content storage</span></div>
+      </div>
+    </div>
+    <div class="side side-air">
+      <div class="side-label"><span class="side-dot air"></span><span class="side-label-text air">On Air &mdash; proposed workflow</span></div>
+      <p class="side-desc">Air integrates directly with Jira. When a sample ticket is created, a corresponding Air board is auto-generated. The board link is automatically written back into Jira&rsquo;s custom field &mdash; no manual copy-pasting.</p>
+      <div class="flow-steps">
+        <div class="flow-step manual"><span class="flow-step-num">01</span><span class="flow-step-label">Export from Centric &rarr; create Jira ticket</span><span class="flow-badge manual">Manual</span></div>
+        <div class="flow-step auto"><span class="flow-step-num">02</span><span class="flow-step-label">Air board auto-created from Jira trigger</span><span class="flow-badge auto">Auto</span></div>
+        <div class="flow-step auto"><span class="flow-step-num">03</span><span class="flow-step-label">Board link synced back to Jira ticket</span><span class="flow-badge auto">Auto</span></div>
+      </div>
+      <div class="diagram-wrap"><svg viewBox="0 0 460 150" xmlns="http://www.w3.org/2000/svg">
+        <rect x="16" y="46" width="100" height="42" rx="8" fill="#f7f7f5" stroke="#d8d7d3" stroke-width="0.75"/><text x="66" y="71" text-anchor="middle" font-size="12" font-weight="600" fill="#2e2e2c">Centric</text>
+        <line x1="116" y1="67" x2="154" y2="67" stroke="#b8b7b3" stroke-width="1" marker-end="url(#ag)"/>
+        <rect x="156" y="46" width="100" height="42" rx="8" fill="#f7f7f5" stroke="#d8d7d3" stroke-width="0.75"/><text x="206" y="71" text-anchor="middle" font-size="12" font-weight="600" fill="#2e2e2c">Jira</text>
+        <line x1="256" y1="67" x2="304" y2="67" stroke="#0F6E56" stroke-width="1" marker-end="url(#av)"/><text x="280" y="54" text-anchor="middle" font-size="9" fill="#0F6E56">auto</text>
+        <rect x="306" y="46" width="130" height="42" rx="8" fill="#E1F5EE" stroke="#0F6E56" stroke-width="0.75"/><text x="371" y="71" text-anchor="middle" font-size="12" font-weight="600" fill="#085041">Air</text>
+        <path d="M340 88 Q340 120 206 120 Q206 108 206 88" fill="none" stroke="#0F6E56" stroke-width="0.75" stroke-dasharray="4 3" marker-end="url(#av)"/><text x="275" y="136" text-anchor="middle" font-size="9" fill="#0F6E56">link synced back</text>
+      </svg></div>
+      <div class="points-title win">Wins</div>
+      <div class="points-list">
+        <div class="point-item"><span class="point-icon win">&check;</span><span class="point-text">Zero manual setup &mdash; boards created automatically from Jira triggers</span></div>
+        <div class="point-item"><span class="point-icon win">&check;</span><span class="point-text">Bi-directional sync eliminates broken or missing links</span></div>
+        <div class="point-item"><span class="point-icon win">&check;</span><span class="point-text">Scales effortlessly across 4,000+ SKUs per year</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- STEP 2 -->
+<section class="step-section">
+  <div class="step-header">
+    <span class="step-num">02</span>
+    <div class="step-meta"><h2>Studio content <em>drop-off after shoot</em></h2><span class="phase-badge crawl">Crawl</span></div>
+  </div>
+  <div class="comparison">
+    <div class="side side-current">
+      <div class="side-label"><span class="side-dot current"></span><span class="side-label-text current">Today &mdash; current process</span></div>
+      <p class="side-desc">The studio receives a Frame.io link and uploads raw assets into a drop-off folder. The content production team manually validates against the shot list, then manually notifies Briseida that images are ready.</p>
+      <div class="flow-steps">
+        <div class="flow-step normal"><span class="flow-step-num">01</span><span class="flow-step-label">Studio receives Frame.io link</span></div>
+        <div class="flow-step normal"><span class="flow-step-num">02</span><span class="flow-step-label">Upload to drop-off folder</span></div>
+        <div class="flow-step manual"><span class="flow-step-num">03</span><span class="flow-step-label">Validate against shot list</span><span class="flow-badge manual">Manual</span></div>
+        <div class="flow-step manual"><span class="flow-step-num">04</span><span class="flow-step-label">Notify team: ready to process</span><span class="flow-badge manual">Manual</span></div>
+      </div>
+      <div class="diagram-wrap"><svg viewBox="0 0 460 120" xmlns="http://www.w3.org/2000/svg">
+        <rect x="16" y="32" width="100" height="42" rx="8" fill="#f7f7f5" stroke="#d8d7d3" stroke-width="0.75"/><text x="66" y="57" text-anchor="middle" font-size="12" font-weight="600" fill="#2e2e2c">Studio</text>
+        <line x1="116" y1="53" x2="154" y2="53" stroke="#b8b7b3" stroke-width="1" marker-end="url(#ag)"/><text x="136" y="38" text-anchor="middle" font-size="9" fill="#b8b7b3">link</text>
+        <rect x="156" y="32" width="120" height="42" rx="8" fill="#fef2f2" stroke="rgba(212,68,68,0.25)" stroke-width="0.75"/><text x="216" y="57" text-anchor="middle" font-size="12" font-weight="600" fill="#7a1f1f">Frame.io</text>
+        <line x1="276" y1="53" x2="314" y2="53" stroke="#d44" stroke-width="1" stroke-dasharray="4 3" marker-end="url(#ar)"/><text x="296" y="38" text-anchor="middle" font-size="9" fill="#d44">manual</text>
+        <rect x="316" y="32" width="120" height="42" rx="8" fill="#f7f7f5" stroke="#d8d7d3" stroke-width="0.75"/><text x="376" y="50" text-anchor="middle" font-size="12" font-weight="600" fill="#2e2e2c">Content</text><text x="376" y="64" text-anchor="middle" font-size="10" fill="#8a8985">team</text>
+      </svg></div>
+      <div class="points-title pain">Pain points</div>
+      <div class="points-list">
+        <div class="point-item"><span class="point-icon pain">&times;</span><span class="point-text">Frame.io links have broken in the past, disrupting handoffs</span></div>
+        <div class="point-item"><span class="point-icon pain">&times;</span><span class="point-text">Manual validation of shot list is time-consuming at volume</span></div>
+        <div class="point-item"><span class="point-icon pain">&times;</span><span class="point-text">Team notification is a manual handoff step</span></div>
+      </div>
+    </div>
+    <div class="side side-air">
+      <div class="side-label"><span class="side-dot air"></span><span class="side-label-text air">On Air &mdash; proposed workflow</span></div>
+      <p class="side-desc">Each shoot gets a content collection form &mdash; a branded upload portal. Required metadata fields are filled at upload. Submissions auto-organize into boards. The team is notified automatically via Slack.</p>
+      <div class="flow-steps">
+        <div class="flow-step normal"><span class="flow-step-num">01</span><span class="flow-step-label">Studio gets Air upload form</span></div>
+        <div class="flow-step normal"><span class="flow-step-num">02</span><span class="flow-step-label">Upload + fill required metadata</span></div>
+        <div class="flow-step auto"><span class="flow-step-num">03</span><span class="flow-step-label">Auto-organized into boards</span><span class="flow-badge auto">Auto</span></div>
+        <div class="flow-step auto"><span class="flow-step-num">04</span><span class="flow-step-label">Team notified via Slack</span><span class="flow-badge auto">Auto</span></div>
+      </div>
+      <div class="diagram-wrap"><svg viewBox="0 0 460 120" xmlns="http://www.w3.org/2000/svg">
+        <rect x="16" y="32" width="100" height="42" rx="8" fill="#f7f7f5" stroke="#d8d7d3" stroke-width="0.75"/><text x="66" y="57" text-anchor="middle" font-size="12" font-weight="600" fill="#2e2e2c">Studio</text>
+        <line x1="116" y1="53" x2="154" y2="53" stroke="#0F6E56" stroke-width="1" marker-end="url(#av)"/><text x="136" y="38" text-anchor="middle" font-size="9" fill="#0F6E56">form</text>
+        <rect x="156" y="32" width="140" height="42" rx="8" fill="#E1F5EE" stroke="#0F6E56" stroke-width="0.75"/><text x="226" y="57" text-anchor="middle" font-size="12" font-weight="600" fill="#085041">Air</text>
+        <line x1="296" y1="53" x2="334" y2="53" stroke="#0F6E56" stroke-width="1" marker-end="url(#av)"/><text x="316" y="38" text-anchor="middle" font-size="9" fill="#0F6E56">auto</text>
+        <rect x="336" y="32" width="100" height="42" rx="8" fill="#f7f7f5" stroke="#d8d7d3" stroke-width="0.75"/><text x="386" y="50" text-anchor="middle" font-size="12" font-weight="600" fill="#2e2e2c">Slack</text><text x="386" y="64" text-anchor="middle" font-size="10" fill="#8a8985">notify</text>
+      </svg></div>
+      <div class="points-title win">Wins</div>
+      <div class="points-list">
+        <div class="point-item"><span class="point-icon win">&check;</span><span class="point-text">Collection forms replace fragile Frame links &mdash; reliable, branded portal</span></div>
+        <div class="point-item"><span class="point-icon win">&check;</span><span class="point-text">Required metadata at upload means assets arrive pre-tagged</span></div>
+        <div class="point-item"><span class="point-icon win">&check;</span><span class="point-text">Automatic Slack/email notifications eliminate manual handoffs</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- STEP 3 -->
+<section class="step-section">
+  <div class="step-header">
+    <span class="step-num">03</span>
+    <div class="step-meta"><h2>Send assets <em>to Pixelz for retouching</em></h2><span class="phase-badge walk">Walk</span></div>
+  </div>
+  <div class="comparison">
+    <div class="side side-current">
+      <div class="side-label"><span class="side-dot current"></span><span class="side-label-text current">Today &mdash; current process</span></div>
+      <p class="side-desc">After assets land in Frame.io, pinups, product photos, PDP videos, creative grids, and product accessories all go to Pixelz for AI retouching via FTP. Pixelz uses 36 sorting guides based on naming conventions. Only lifestyle editorial requires a manual triage &mdash; depending on the project, complexity, and budget, those may go to Pixelz, internal retouchers, or contract retouchers.</p>
+      <div class="flow-steps">
+        <div class="flow-step normal"><span class="flow-step-num">01</span><span class="flow-step-label">Pinups, product, PDP video, grids, accessories &rarr; all to Pixelz</span></div>
+        <div class="flow-step manual"><span class="flow-step-num">02</span><span class="flow-step-label">Lifestyle editorial: manual triage per project</span><span class="flow-badge manual">Manual</span></div>
+        <div class="flow-step manual"><span class="flow-step-num">03</span><span class="flow-step-label">FTP upload to Pixelz</span><span class="flow-badge manual">Manual</span></div>
+      </div>
+      <div class="diagram-wrap"><svg viewBox="0 0 460 230" xmlns="http://www.w3.org/2000/svg">
+        <rect x="150" y="14" width="140" height="38" rx="8" fill="#fef2f2" stroke="rgba(212,68,68,0.25)" stroke-width="0.75"/><text x="220" y="37" text-anchor="middle" font-size="12" font-weight="600" fill="#7a1f1f">Frame.io</text>
+        <line x1="185" y1="52" x2="185" y2="82" stroke="#b8b7b3" stroke-width="0.75"/>
+        <line x1="270" y1="52" x2="380" y2="82" stroke="#d44" stroke-width="0.75" stroke-dasharray="4 3"/>
+        <rect x="36" y="82" width="290" height="32" rx="6" fill="#f7f7f5" stroke="#d8d7d3" stroke-width="0.75"/><text x="181" y="102" text-anchor="middle" font-size="10" fill="#4a4a47">Pinups &middot; Product &middot; PDP Video &middot; Grids &middot; Accessories</text>
+        <rect x="340" y="82" width="100" height="32" rx="6" fill="#fef2f2" stroke="rgba(212,68,68,0.2)" stroke-width="0.75"/><text x="390" y="96" text-anchor="middle" font-size="10" fill="#7a1f1f">Lifestyle</text><text x="390" y="108" text-anchor="middle" font-size="8" fill="#d44">manual triage</text>
+        <line x1="181" y1="114" x2="181" y2="148" stroke="#b8b7b3" stroke-width="0.75"/>
+        <line x1="370" y1="114" x2="250" y2="148" stroke="#d44" stroke-width="0.75" stroke-dasharray="4 3"/>
+        <text x="330" y="140" font-size="9" fill="#d44">some</text>
+        <text x="140" y="140" font-size="9" fill="#b8b7b3">FTP</text>
+        <rect x="110" y="150" width="180" height="38" rx="8" fill="#f7f7f5" stroke="#d8d7d3" stroke-width="0.75"/><text x="200" y="173" text-anchor="middle" font-size="12" font-weight="600" fill="#2e2e2c">Pixelz</text>
+        <rect x="340" y="150" width="100" height="38" rx="6" fill="#f7f7f5" stroke="#d8d7d3" stroke-width="0.75"/><text x="390" y="166" text-anchor="middle" font-size="10" fill="#4a4a47">Internal /</text><text x="390" y="180" text-anchor="middle" font-size="10" fill="#4a4a47">contract</text>
+        <line x1="410" y1="114" x2="410" y2="148" stroke="#d44" stroke-width="0.75" stroke-dasharray="4 3"/>
+        <text x="435" y="136" font-size="9" fill="#d44">some</text>
+        <text x="200" y="218" text-anchor="middle" font-size="9" fill="#8a8985" font-style="italic">36 sorting guides based on naming conventions</text>
+      </svg></div>
+      <div class="points-title pain">Pain points</div>
+      <div class="points-list">
+        <div class="point-item"><span class="point-icon pain">&times;</span><span class="point-text">FTP upload to Pixelz is manual &mdash; forced onto FTP after Frame.io links kept breaking</span></div>
+        <div class="point-item"><span class="point-icon pain">&times;</span><span class="point-text">No real-time visibility into what&rsquo;s been sent or received from Pixelz</span></div>
+      </div>
+    </div>
+    <div class="side side-air">
+      <div class="side-label"><span class="side-dot air"></span><span class="side-label-text air">On Air &mdash; proposed workflow</span></div>
+      <p class="side-desc">Air boards are pre-structured by asset type (pinups, product photos, PDP videos, creative grids, accessories, lifestyle). When assets land in the correct board, an API integration automatically pushes them to Pixelz. Naming conventions are preserved.</p>
+      <div class="flow-steps">
+        <div class="flow-step auto"><span class="flow-step-num">01</span><span class="flow-step-label">Assets land in pre-typed Air boards</span><span class="flow-badge auto">Auto</span></div>
+        <div class="flow-step auto"><span class="flow-step-num">02</span><span class="flow-step-label">Board rules determine routing</span><span class="flow-badge auto">Auto</span></div>
+        <div class="flow-step auto"><span class="flow-step-num">03</span><span class="flow-step-label">API push to Pixelz</span><span class="flow-badge auto">Auto</span></div>
+      </div>
+      <div class="diagram-wrap"><svg viewBox="0 0 460 120" xmlns="http://www.w3.org/2000/svg">
+        <rect x="16" y="32" width="180" height="42" rx="8" fill="#E1F5EE" stroke="#0F6E56" stroke-width="0.75"/><text x="106" y="50" text-anchor="middle" font-size="12" font-weight="600" fill="#085041">Air</text><text x="106" y="64" text-anchor="middle" font-size="10" fill="#0F6E56">typed boards + rules</text>
+        <line x1="196" y1="53" x2="244" y2="53" stroke="#0F6E56" stroke-width="1" marker-end="url(#av)"/><text x="220" y="38" text-anchor="middle" font-size="9" fill="#0F6E56">API</text>
+        <rect x="246" y="32" width="160" height="42" rx="8" fill="#f7f7f5" stroke="#d8d7d3" stroke-width="0.75"/><text x="326" y="50" text-anchor="middle" font-size="12" font-weight="600" fill="#2e2e2c">Pixelz</text><text x="326" y="64" text-anchor="middle" font-size="10" fill="#8a8985">36 sorting guides</text>
+      </svg></div>
+      <div class="points-title win">Wins</div>
+      <div class="points-list">
+        <div class="point-item"><span class="point-icon win">&check;</span><span class="point-text">Board-based routing replaces manual triage automatically</span></div>
+        <div class="point-item"><span class="point-icon win">&check;</span><span class="point-text">API integration replaces FTP &mdash; reliable, trackable</span></div>
+        <div class="point-item"><span class="point-icon win">&check;</span><span class="point-text">Full audit trail of what was sent and when</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- STEP 4 -->
+<section class="step-section">
+  <div class="step-header">
+    <span class="step-num">04</span>
+    <div class="step-meta"><h2>Receive retouched assets, <em>review &amp; approve</em></h2><span class="phase-badge crawl">Crawl</span></div>
+  </div>
+  <div class="comparison">
+    <div class="side side-current">
+      <div class="side-label"><span class="side-dot current"></span><span class="side-label-text current">Today &mdash; current process</span></div>
+      <p class="side-desc">Once Pixelz completes editing, the team downloads retouched assets (three versions per product: natural, white, and transparent backgrounds) and re-uploads them into Frame.io. A Jira review ticket is then raised with the Frame.io link manually pasted in. 36+ Jira automations route the ticket to the correct PD/merchandising reviewer. Reviewers markup in Frame.io. If PD requests changes, a separate Jira ticket is created for internal retouching (human-level edits beyond Pixelz). Once approved, the team comments approval in Jira and moves assets to the server (backup), Elastic (wholesale), and Bynder (DAM).</p>
+      <div class="flow-steps">
+        <div class="flow-step manual"><span class="flow-step-num">01</span><span class="flow-step-label">Download retouched assets from Pixelz (3 versions each)</span><span class="flow-badge manual">Manual</span></div>
+        <div class="flow-step manual"><span class="flow-step-num">02</span><span class="flow-step-label">Re-upload to Frame.io</span><span class="flow-badge manual">Manual</span></div>
+        <div class="flow-step manual"><span class="flow-step-num">03</span><span class="flow-step-label">Raise Jira review ticket + paste Frame.io link</span><span class="flow-badge manual">Manual</span></div>
+        <div class="flow-step auto"><span class="flow-step-num">04</span><span class="flow-step-label">Jira routes to PD/merch reviewer (36+ automations)</span><span class="flow-badge auto">Auto</span></div>
+        <div class="flow-step normal"><span class="flow-step-num">05</span><span class="flow-step-label">Reviewer marks up and provides feedback in Frame.io</span></div>
+        <div class="flow-step manual"><span class="flow-step-num">06</span><span class="flow-step-label">If changes: Jira ticket for internal retoucher</span><span class="flow-badge manual">Manual</span></div>
+        <div class="flow-step manual"><span class="flow-step-num">07</span><span class="flow-step-label">Comment approval in Jira, move to server + Elastic + Bynder</span><span class="flow-badge manual">Manual</span></div>
+      </div>
+      <div class="diagram-wrap"><svg viewBox="0 0 460 260" xmlns="http://www.w3.org/2000/svg">
+        <rect x="16" y="16" width="100" height="38" rx="8" fill="#f7f7f5" stroke="#d8d7d3" stroke-width="0.75"/><text x="66" y="39" text-anchor="middle" font-size="12" font-weight="600" fill="#2e2e2c">Pixelz</text>
+        <line x1="116" y1="35" x2="154" y2="35" stroke="#d44" stroke-width="1" stroke-dasharray="4 3" marker-end="url(#ar)"/><text x="135" y="22" text-anchor="middle" font-size="9" fill="#d44">download</text>
+        <rect x="156" y="16" width="130" height="38" rx="8" fill="#fef2f2" stroke="rgba(212,68,68,0.25)" stroke-width="0.75"/><text x="221" y="39" text-anchor="middle" font-size="12" font-weight="600" fill="#7a1f1f">Frame.io</text>
+        <line x1="221" y1="54" x2="221" y2="78" stroke="#d44" stroke-width="1" stroke-dasharray="4 3" marker-end="url(#ar)"/><text x="256" y="70" font-size="9" fill="#d44">manual link</text>
+        <rect x="156" y="80" width="130" height="38" rx="8" fill="#f7f7f5" stroke="#d8d7d3" stroke-width="0.75"/><text x="221" y="103" text-anchor="middle" font-size="12" font-weight="600" fill="#2e2e2c">Jira</text>
+        <line x1="286" y1="99" x2="324" y2="99" stroke="#0F6E56" stroke-width="1" marker-end="url(#av)"/><text x="305" y="86" text-anchor="middle" font-size="9" fill="#0F6E56">auto-route</text>
+        <rect x="326" y="80" width="110" height="38" rx="8" fill="#f7f7f5" stroke="#d8d7d3" stroke-width="0.75"/><text x="381" y="103" text-anchor="middle" font-size="12" font-weight="600" fill="#2e2e2c">Reviewer</text>
+        <rect x="326" y="140" width="110" height="30" rx="6" fill="#f7f7f5" stroke="#d8d7d3" stroke-width="0.75"/><text x="381" y="159" text-anchor="middle" font-size="10" fill="#4a4a47">Internal retoucher</text>
+        <line x1="381" y1="118" x2="381" y2="138" stroke="#d44" stroke-width="0.75" stroke-dasharray="4 3" marker-end="url(#ar)"/><text x="415" y="132" font-size="9" fill="#d44">if changes</text>
+        <text x="221" y="148" text-anchor="middle" font-size="9" fill="#8a8985">approved</text>
+        <line x1="221" y1="118" x2="221" y2="178" stroke="#b8b7b3" stroke-width="0.75" marker-end="url(#ag)"/>
+        <rect x="16" y="180" width="100" height="30" rx="6" fill="#f7f7f5" stroke="#d8d7d3" stroke-width="0.75"/><text x="66" y="199" text-anchor="middle" font-size="10" fill="#4a4a47">Server</text>
+        <rect x="130" y="180" width="100" height="30" rx="6" fill="#f7f7f5" stroke="#d8d7d3" stroke-width="0.75"/><text x="180" y="199" text-anchor="middle" font-size="10" fill="#4a4a47">Elastic</text>
+        <rect x="244" y="180" width="100" height="30" rx="6" fill="#f7f7f5" stroke="#d8d7d3" stroke-width="0.75"/><text x="294" y="199" text-anchor="middle" font-size="10" fill="#4a4a47">Bynder</text>
+        <text x="66" y="224" text-anchor="middle" font-size="9" fill="#8a8985" font-style="italic">backup</text>
+        <text x="180" y="224" text-anchor="middle" font-size="9" fill="#8a8985" font-style="italic">wholesale</text>
+        <text x="294" y="224" text-anchor="middle" font-size="9" fill="#8a8985" font-style="italic">DAM</text>
+      </svg></div>
+      <div class="points-title pain">Pain points</div>
+      <div class="points-list">
+        <div class="point-item"><span class="point-icon pain">&times;</span><span class="point-text">Manual download from Pixelz and re-upload to Frame.io for every batch</span></div>
+        <div class="point-item"><span class="point-icon pain">&times;</span><span class="point-text">Frame.io link must be manually pasted into every Jira review ticket</span></div>
+        <div class="point-item"><span class="point-icon pain">&times;</span><span class="point-text">Reviewers switch between Jira (routing) and Frame.io (feedback) constantly</span></div>
+        <div class="point-item"><span class="point-icon pain">&times;</span><span class="point-text">Frame.io bulk updates don&rsquo;t stick; support took 5+ weeks to resolve issues</span></div>
+        <div class="point-item"><span class="point-icon pain">&times;</span><span class="point-text">Post-approval distribution to server, Elastic, and Bynder is manual</span></div>
+      </div>
+    </div>
+    <div class="side side-air">
+      <div class="side-label"><span class="side-dot air"></span><span class="side-label-text air">On Air &mdash; proposed workflow</span></div>
+      <p class="side-desc">Air receives retouched assets from Pixelz via API and auto-versions them by unique ID. An Air link is automatically populated in the Jira review ticket. Reviewers markup directly in Air with annotations, version comparisons, and kanban status tracking. If changes are needed, the internal retoucher edits via Air&rsquo;s desktop sync app with auto-versioning. Approvals auto-update Jira. All 36+ Jira routing automations stay untouched.</p>
+      <div class="flow-steps">
+        <div class="flow-step auto"><span class="flow-step-num">01</span><span class="flow-step-label">Pixelz API returns edited files to Air, auto-versioned by uid</span><span class="flow-badge auto">Auto</span></div>
+        <div class="flow-step auto"><span class="flow-step-num">02</span><span class="flow-step-label">Air link auto-populated in Jira review ticket</span><span class="flow-badge auto">Auto</span></div>
+        <div class="flow-step auto"><span class="flow-step-num">03</span><span class="flow-step-label">Jira routes to PD/merch reviewer (36+ automations unchanged)</span><span class="flow-badge auto">Auto</span></div>
+        <div class="flow-step normal"><span class="flow-step-num">04</span><span class="flow-step-label">Reviewer marks up directly in Air</span></div>
+        <div class="flow-step normal"><span class="flow-step-num">05</span><span class="flow-step-label">If changes: retoucher edits via Air desktop sync, auto-versioned</span></div>
+        <div class="flow-step auto"><span class="flow-step-num">06</span><span class="flow-step-label">Approval auto-updates Jira + triggers distribution</span><span class="flow-badge auto">Auto</span></div>
+      </div>
+      <div class="diagram-wrap"><svg viewBox="0 0 460 200" xmlns="http://www.w3.org/2000/svg">
+        <rect x="16" y="16" width="100" height="38" rx="8" fill="#f7f7f5" stroke="#d8d7d3" stroke-width="0.75"/><text x="66" y="39" text-anchor="middle" font-size="12" font-weight="600" fill="#2e2e2c">Pixelz</text>
+        <line x1="116" y1="35" x2="154" y2="35" stroke="#0F6E56" stroke-width="1" marker-end="url(#av)"/><text x="135" y="22" text-anchor="middle" font-size="9" fill="#0F6E56">API</text>
+        <rect x="156" y="16" width="170" height="38" rx="8" fill="#E1F5EE" stroke="#0F6E56" stroke-width="0.75"/><text x="241" y="32" text-anchor="middle" font-size="12" font-weight="600" fill="#085041">Air</text><text x="241" y="46" text-anchor="middle" font-size="10" fill="#0F6E56">auto-version + kanban + markup</text>
+        <line x1="241" y1="54" x2="241" y2="78" stroke="#0F6E56" stroke-width="1" marker-end="url(#av)"/><text x="276" y="70" font-size="9" fill="#0F6E56">auto link</text>
+        <rect x="176" y="80" width="130" height="38" rx="8" fill="#f7f7f5" stroke="#d8d7d3" stroke-width="0.75"/><text x="241" y="103" text-anchor="middle" font-size="12" font-weight="600" fill="#2e2e2c">Jira</text>
+        <line x1="306" y1="99" x2="344" y2="99" stroke="#0F6E56" stroke-width="1" marker-end="url(#av)"/><text x="325" y="86" text-anchor="middle" font-size="9" fill="#0F6E56">auto-route</text>
+        <rect x="346" y="80" width="100" height="38" rx="8" fill="#f7f7f5" stroke="#d8d7d3" stroke-width="0.75"/><text x="396" y="103" text-anchor="middle" font-size="12" font-weight="600" fill="#2e2e2c">Reviewer</text>
+        <line x1="241" y1="118" x2="241" y2="156" stroke="#0F6E56" stroke-width="1" marker-end="url(#av)"/>
+        <text x="241" y="174" text-anchor="middle" font-size="9" fill="#0F6E56">auto-update status + distribute to other systems</text>
+      </svg></div>
+      <div class="points-title win">Wins</div>
+      <div class="points-list">
+        <div class="point-item"><span class="point-icon win">&check;</span><span class="point-text">Pixelz API return eliminates manual download and re-upload</span></div>
+        <div class="point-item"><span class="point-icon win">&check;</span><span class="point-text">Air link auto-synced to Jira &mdash; no more manual link pasting</span></div>
+        <div class="point-item"><span class="point-icon win">&check;</span><span class="point-text">Markup, versioning, and kanban all in one place &mdash; no tool-switching</span></div>
+        <div class="point-item"><span class="point-icon win">&check;</span><span class="point-text">Desktop sync app lets internal retouchers edit in any tool with auto-versioning</span></div>
+        <div class="point-item"><span class="point-icon win">&check;</span><span class="point-text">Dedicated Slack channel + engineering support &mdash; hours, not weeks</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- STEP 5 -->
+<section class="step-section">
+  <div class="step-header">
+    <span class="step-num">05</span>
+    <div class="step-meta"><h2>Bulk metadata <em>application via CSV</em></h2><span class="phase-badge run">Run</span></div>
+  </div>
+  <div class="comparison">
+    <div class="side side-current">
+      <div class="side-label"><span class="side-dot current"></span><span class="side-label-text current">Today &mdash; current process</span></div>
+      <p class="side-desc">Briseida exports a CSV from Jira PIM, matches it to filenames by unique ID, then bulk uploads images + CSV to Bynder. This happens ~15 times per day. To update metadata, the team must delete assets and re-upload &mdash; a major regression from WebDAM.</p>
+      <div class="flow-steps">
+        <div class="flow-step manual"><span class="flow-step-num">01</span><span class="flow-step-label">Export CSV from Jira PIM</span><span class="flow-badge manual">Manual</span></div>
+        <div class="flow-step manual"><span class="flow-step-num">02</span><span class="flow-step-label">Match CSV to filenames by uid</span><span class="flow-badge manual">Manual</span></div>
+        <div class="flow-step manual"><span class="flow-step-num">03</span><span class="flow-step-label">Bulk upload images + CSV to Bynder</span><span class="flow-badge manual">Manual</span></div>
+        <div class="flow-step manual"><span class="flow-step-num">04</span><span class="flow-step-label">To update: delete + re-upload</span><span class="flow-badge manual">Manual</span></div>
+      </div>
+      <div class="diagram-wrap"><svg viewBox="0 0 460 130" xmlns="http://www.w3.org/2000/svg">
+        <rect x="16" y="32" width="100" height="42" rx="8" fill="#f7f7f5" stroke="#d8d7d3" stroke-width="0.75"/><text x="66" y="50" text-anchor="middle" font-size="12" font-weight="600" fill="#2e2e2c">Jira</text><text x="66" y="64" text-anchor="middle" font-size="10" fill="#8a8985">PIM</text>
+        <line x1="116" y1="53" x2="154" y2="53" stroke="#d44" stroke-width="1" stroke-dasharray="4 3" marker-end="url(#ar)"/><text x="136" y="38" text-anchor="middle" font-size="9" fill="#d44">CSV</text>
+        <rect x="156" y="32" width="120" height="42" rx="8" fill="#f7f7f5" stroke="#d8d7d3" stroke-width="0.75"/><text x="216" y="50" text-anchor="middle" font-size="12" font-weight="600" fill="#2e2e2c">Bynder</text><text x="216" y="64" text-anchor="middle" font-size="10" fill="#d44">upload only</text>
+        <path d="M216 74 Q216 100 126 100 Q100 100 100 74" fill="none" stroke="#d44" stroke-width="0.75" stroke-dasharray="4 3" marker-end="url(#ar)"/><text x="170" y="114" text-anchor="middle" font-size="9" fill="#d44">delete &amp; re-upload to update</text>
+      </svg></div>
+      <div class="points-title pain">Pain points</div>
+      <div class="points-list">
+        <div class="point-item"><span class="point-icon pain">&times;</span><span class="point-text">Bynder only supports CSV metadata on initial upload &mdash; no bulk update</span></div>
+        <div class="point-item"><span class="point-icon pain">&times;</span><span class="point-text">Updating metadata requires delete + re-upload (multiple times per week)</span></div>
+        <div class="point-item"><span class="point-icon pain">&times;</span><span class="point-text">Amanda&rsquo;s #1 pain point &mdash; major regression from WebDAM</span></div>
+      </div>
+    </div>
+    <div class="side side-air">
+      <div class="side-label"><span class="side-dot air"></span><span class="side-label-text air">On Air &mdash; proposed workflow</span></div>
+      <p class="side-desc">Air&rsquo;s solutions engineering team builds an automated CSV-to-metadata pipeline. Upload a CSV keyed on the unique ID, and Air bulk-applies metadata &mdash; both on initial upload and for in-place updates.</p>
+      <div class="flow-steps">
+        <div class="flow-step manual"><span class="flow-step-num">01</span><span class="flow-step-label">Export CSV from Jira PIM</span><span class="flow-badge manual">Manual</span></div>
+        <div class="flow-step normal"><span class="flow-step-num">02</span><span class="flow-step-label">Upload CSV to Air</span></div>
+        <div class="flow-step auto"><span class="flow-step-num">03</span><span class="flow-step-label">Auto-match by unique ID</span><span class="flow-badge auto">Auto</span></div>
+        <div class="flow-step auto"><span class="flow-step-num">04</span><span class="flow-step-label">Metadata applied / updated in place</span><span class="flow-badge auto">Auto</span></div>
+      </div>
+      <div class="diagram-wrap"><svg viewBox="0 0 460 120" xmlns="http://www.w3.org/2000/svg">
+        <rect x="16" y="32" width="100" height="42" rx="8" fill="#f7f7f5" stroke="#d8d7d3" stroke-width="0.75"/><text x="66" y="50" text-anchor="middle" font-size="12" font-weight="600" fill="#2e2e2c">Jira</text><text x="66" y="64" text-anchor="middle" font-size="10" fill="#8a8985">PIM</text>
+        <line x1="116" y1="53" x2="154" y2="53" stroke="#b8b7b3" stroke-width="1" marker-end="url(#ag)"/><text x="136" y="38" text-anchor="middle" font-size="9" fill="#8a8985">CSV</text>
+        <rect x="156" y="32" width="220" height="42" rx="8" fill="#E1F5EE" stroke="#0F6E56" stroke-width="0.75"/><text x="266" y="50" text-anchor="middle" font-size="12" font-weight="600" fill="#085041">Air</text><text x="266" y="64" text-anchor="middle" font-size="10" fill="#0F6E56">auto-match &amp; update by uid</text>
+      </svg></div>
+      <div class="points-title win">Wins</div>
+      <div class="points-list">
+        <div class="point-item"><span class="point-icon win">&check;</span><span class="point-text">Bulk metadata updates in place &mdash; no delete-and-re-upload cycle</span></div>
+        <div class="point-item"><span class="point-icon win">&check;</span><span class="point-text">Works for both initial upload and ongoing updates</span></div>
+        <div class="point-item"><span class="point-icon win">&check;</span><span class="point-text">Restores the WebDAM capability lost in the Bynder migration</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- STEP 6 -->
+<section class="step-section">
+  <div class="step-header">
+    <span class="step-num">06</span>
+    <div class="step-meta"><h2>Capture tracking <em>&amp; weekly reporting</em></h2><span class="phase-badge crawl">Crawl</span></div>
+  </div>
+  <div class="comparison">
+    <div class="side side-current">
+      <div class="side-label"><span class="side-dot current"></span><span class="side-label-text current">Today &mdash; current process</span></div>
+      <p class="side-desc">Amanda runs a weekly sync: export from Frame.io, match by uid to Jira PIM tickets, update &ldquo;capture complete&rdquo; fields. Coordinators only see updates after the weekly cycle.</p>
+      <div class="flow-steps">
+        <div class="flow-step manual"><span class="flow-step-num">01</span><span class="flow-step-label">Export report from Frame.io</span><span class="flow-badge manual">Manual</span></div>
+        <div class="flow-step manual"><span class="flow-step-num">02</span><span class="flow-step-label">Match uid to Jira tickets</span><span class="flow-badge manual">Manual</span></div>
+        <div class="flow-step manual"><span class="flow-step-num">03</span><span class="flow-step-label">Update capture status in Jira</span><span class="flow-badge manual">Manual</span></div>
+      </div>
+      <div class="diagram-wrap"><svg viewBox="0 0 460 120" xmlns="http://www.w3.org/2000/svg">
+        <rect x="16" y="32" width="120" height="42" rx="8" fill="#fef2f2" stroke="rgba(212,68,68,0.25)" stroke-width="0.75"/><text x="76" y="57" text-anchor="middle" font-size="12" font-weight="600" fill="#7a1f1f">Frame.io</text>
+        <line x1="136" y1="53" x2="174" y2="53" stroke="#d44" stroke-width="1" stroke-dasharray="4 3" marker-end="url(#ar)"/><text x="155" y="38" text-anchor="middle" font-size="9" fill="#d44">export</text>
+        <rect x="176" y="32" width="120" height="42" rx="8" fill="#f7f7f5" stroke="#d8d7d3" stroke-width="0.75"/><text x="236" y="50" text-anchor="middle" font-size="12" font-weight="600" fill="#2e2e2c">uid match</text><text x="236" y="64" text-anchor="middle" font-size="10" fill="#d44">manual</text>
+        <line x1="296" y1="53" x2="334" y2="53" stroke="#d44" stroke-width="1" stroke-dasharray="4 3" marker-end="url(#ar)"/>
+        <rect x="336" y="32" width="100" height="42" rx="8" fill="#f7f7f5" stroke="#d8d7d3" stroke-width="0.75"/><text x="386" y="57" text-anchor="middle" font-size="12" font-weight="600" fill="#2e2e2c">Jira</text>
+      </svg></div>
+      <div class="points-title pain">Pain points</div>
+      <div class="points-list">
+        <div class="point-item"><span class="point-icon pain">&times;</span><span class="point-text">Weekly manual export-and-match process is time-intensive</span></div>
+        <div class="point-item"><span class="point-icon pain">&times;</span><span class="point-text">Reporting lags &mdash; coordinators only see weekly updates</span></div>
+      </div>
+    </div>
+    <div class="side side-air">
+      <div class="side-label"><span class="side-dot air"></span><span class="side-label-text air">On Air &mdash; proposed workflow</span></div>
+      <p class="side-desc">When assets are uploaded with the unique ID, Air auto-pushes status updates back to Jira tickets via API &mdash; updating &ldquo;capture complete&rdquo; fields in real-time with no manual export.</p>
+      <div class="flow-steps">
+        <div class="flow-step normal"><span class="flow-step-num">01</span><span class="flow-step-label">Asset uploaded to Air with uid</span></div>
+        <div class="flow-step auto"><span class="flow-step-num">02</span><span class="flow-step-label">Air auto-syncs status to Jira ticket</span><span class="flow-badge auto">Auto</span></div>
+        <div class="flow-step normal"><span class="flow-step-num">03</span><span class="flow-step-label">Coordinators see real-time data</span></div>
+      </div>
+      <div class="diagram-wrap"><svg viewBox="0 0 460 120" xmlns="http://www.w3.org/2000/svg">
+        <rect x="16" y="32" width="180" height="42" rx="8" fill="#E1F5EE" stroke="#0F6E56" stroke-width="0.75"/><text x="106" y="50" text-anchor="middle" font-size="12" font-weight="600" fill="#085041">Air</text><text x="106" y="64" text-anchor="middle" font-size="10" fill="#0F6E56">asset uploaded with uid</text>
+        <line x1="196" y1="53" x2="244" y2="53" stroke="#0F6E56" stroke-width="1" marker-end="url(#av)"/><text x="220" y="38" text-anchor="middle" font-size="9" fill="#0F6E56">auto</text>
+        <rect x="246" y="32" width="120" height="42" rx="8" fill="#f7f7f5" stroke="#d8d7d3" stroke-width="0.75"/><text x="306" y="50" text-anchor="middle" font-size="12" font-weight="600" fill="#2e2e2c">Jira</text><text x="306" y="64" text-anchor="middle" font-size="10" fill="#0F6E56">real-time status</text>
+      </svg></div>
+      <div class="points-title win">Wins</div>
+      <div class="points-list">
+        <div class="point-item"><span class="point-icon win">&check;</span><span class="point-text">Real-time capture tracking replaces weekly manual sync</span></div>
+        <div class="point-item"><span class="point-icon win">&check;</span><span class="point-text">Automated Jira updates eliminate the CSV export-match cycle entirely</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- STEP 7 -->
+<section class="step-section">
+  <div class="step-header">
+    <span class="step-num">07</span>
+    <div class="step-meta"><h2>FPO watermark <em>&amp; lifestyle preview</em></h2><span class="phase-badge run">Run</span></div>
+  </div>
+  <div class="comparison">
+    <div class="side side-current">
+      <div class="side-label"><span class="side-dot current"></span><span class="side-label-text current">Today &mdash; current process</span></div>
+      <p class="side-desc">Mieko uploads lifestyle images to Bynder with an FPO watermark so channel owners can preview content before final edits. Once approved, she revisions with the final &mdash; but Bynder versioning frequently fails, requiring delete-and-re-upload.</p>
+      <div class="flow-steps">
+        <div class="flow-step manual"><span class="flow-step-num">01</span><span class="flow-step-label">Apply FPO watermark in Frame</span><span class="flow-badge manual">Manual</span></div>
+        <div class="flow-step manual"><span class="flow-step-num">02</span><span class="flow-step-label">Upload watermarked to Bynder</span><span class="flow-badge manual">Manual</span></div>
+        <div class="flow-step normal"><span class="flow-step-num">03</span><span class="flow-step-label">Channel owners browse previews</span></div>
+        <div class="flow-step manual"><span class="flow-step-num">04</span><span class="flow-step-label">Reversion with final (often fails)</span><span class="flow-badge manual">Manual</span></div>
+      </div>
+      <div class="diagram-wrap"><svg viewBox="0 0 460 130" xmlns="http://www.w3.org/2000/svg">
+        <rect x="16" y="36" width="120" height="42" rx="8" fill="#fef2f2" stroke="rgba(212,68,68,0.25)" stroke-width="0.75"/><text x="76" y="61" text-anchor="middle" font-size="12" font-weight="600" fill="#7a1f1f">Frame.io</text>
+        <line x1="136" y1="57" x2="174" y2="57" stroke="#d44" stroke-width="1" stroke-dasharray="4 3" marker-end="url(#ar)"/><text x="155" y="42" text-anchor="middle" font-size="9" fill="#d44">FPO</text>
+        <rect x="176" y="36" width="120" height="42" rx="8" fill="#f7f7f5" stroke="#d8d7d3" stroke-width="0.75"/><text x="236" y="54" text-anchor="middle" font-size="12" font-weight="600" fill="#2e2e2c">Bynder</text><text x="236" y="68" text-anchor="middle" font-size="10" fill="#d44">versioning fails</text>
+        <line x1="296" y1="57" x2="334" y2="57" stroke="#b8b7b3" stroke-width="1" marker-end="url(#ag)"/>
+        <rect x="336" y="36" width="100" height="42" rx="8" fill="#f7f7f5" stroke="#d8d7d3" stroke-width="0.75"/><text x="386" y="54" text-anchor="middle" font-size="12" font-weight="600" fill="#2e2e2c">Channel</text><text x="386" y="68" text-anchor="middle" font-size="10" fill="#8a8985">owners</text>
+      </svg></div>
+      <div class="points-title pain">Pain points</div>
+      <div class="points-list">
+        <div class="point-item"><span class="point-icon pain">&times;</span><span class="point-text">Bynder versioning is unreliable &mdash; must delete and re-upload</span></div>
+        <div class="point-item"><span class="point-icon pain">&times;</span><span class="point-text">Broken versioning cascades through Datago &rarr; Akeneo &rarr; Shopify</span></div>
+      </div>
+    </div>
+    <div class="side side-air">
+      <div class="side-label"><span class="side-dot air"></span><span class="side-label-text air">On Air &mdash; proposed workflow</span></div>
+      <p class="side-desc">Lifestyle images upload to Air with the FPO watermark. Channel owners browse via stable share links. When finals are ready, the clean version auto-stacks by unique ID. No delete-and-re-upload needed.</p>
+      <div class="flow-steps">
+        <div class="flow-step normal"><span class="flow-step-num">01</span><span class="flow-step-label">Upload watermarked to Air</span></div>
+        <div class="flow-step normal"><span class="flow-step-num">02</span><span class="flow-step-label">Share link to channel owners</span></div>
+        <div class="flow-step auto"><span class="flow-step-num">03</span><span class="flow-step-label">Upload final &mdash; auto-stacked by uid</span><span class="flow-badge auto">Auto</span></div>
+      </div>
+      <div class="diagram-wrap"><svg viewBox="0 0 460 120" xmlns="http://www.w3.org/2000/svg">
+        <rect x="16" y="32" width="180" height="42" rx="8" fill="#E1F5EE" stroke="#0F6E56" stroke-width="0.75"/><text x="106" y="50" text-anchor="middle" font-size="12" font-weight="600" fill="#085041">Air</text><text x="106" y="64" text-anchor="middle" font-size="10" fill="#0F6E56">reliable auto-versioning</text>
+        <line x1="196" y1="53" x2="234" y2="53" stroke="#0F6E56" stroke-width="1" marker-end="url(#av)"/><text x="215" y="38" text-anchor="middle" font-size="9" fill="#0F6E56">share</text>
+        <rect x="236" y="32" width="110" height="42" rx="8" fill="#f7f7f5" stroke="#d8d7d3" stroke-width="0.75"/><text x="291" y="50" text-anchor="middle" font-size="12" font-weight="600" fill="#2e2e2c">Channel</text><text x="291" y="64" text-anchor="middle" font-size="10" fill="#8a8985">owners</text>
+      </svg></div>
+      <div class="points-title win">Wins</div>
+      <div class="points-list">
+        <div class="point-item"><span class="point-icon win">&check;</span><span class="point-text">Reliable versioning &mdash; new uploads auto-stack, no delete cycle</span></div>
+        <div class="point-item"><span class="point-icon win">&check;</span><span class="point-text">Stable share links (unlike Frame links that broke)</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- STEP 8 -->
+<section class="step-section">
+  <div class="step-header">
+    <span class="step-num">08</span>
+    <div class="step-meta"><h2>DAM consolidation, <em>variants &amp; distribution</em></h2><span class="phase-badge run">Run</span></div>
+  </div>
+  <div class="comparison">
+    <div class="side side-current">
+      <div class="side-label"><span class="side-dot current"></span><span class="side-label-text current">Today &mdash; current process</span></div>
+      <p class="side-desc">Approved assets go to three destinations: the local server (backup), Elastic (wholesale platform), and Bynder (DAM). From Bynder, assets flow via Datago to Akeneo (PIM) to Shopify. Naming conventions (e.g., &ldquo;_ECOMM&rdquo;, &ldquo;_hero&rdquo;, &ldquo;_secondary&rdquo;) trigger automated cropping specs and version generation. Bynder hosts campaign landing pages with hero imagery, secondary imagery, and collection assets. 98% team satisfaction, but versioning bugs and metadata limits persist.</p>
+      <div class="flow-steps">
+        <div class="flow-step manual"><span class="flow-step-num">01</span><span class="flow-step-label">Upload to Bynder with CSV metadata</span><span class="flow-badge manual">Manual</span></div>
+        <div class="flow-step manual"><span class="flow-step-num">02</span><span class="flow-step-label">Also save to server (backup) + push to Elastic (wholesale)</span><span class="flow-badge manual">Manual</span></div>
+        <div class="flow-step auto"><span class="flow-step-num">03</span><span class="flow-step-label">Naming conventions trigger auto-crop variants in Bynder</span><span class="flow-badge auto">Auto</span></div>
+        <div class="flow-step auto"><span class="flow-step-num">04</span><span class="flow-step-label">Datago &rarr; Akeneo &rarr; Shopify</span><span class="flow-badge auto">Auto</span></div>
+        <div class="flow-step normal"><span class="flow-step-num">05</span><span class="flow-step-label">Campaign landing pages in Bynder</span></div>
+      </div>
+      <div class="diagram-wrap"><svg viewBox="0 0 460 160" xmlns="http://www.w3.org/2000/svg">
+        <rect x="16" y="14" width="100" height="42" rx="8" fill="#f7f7f5" stroke="#d8d7d3" stroke-width="0.75"/><text x="66" y="39" text-anchor="middle" font-size="12" font-weight="600" fill="#2e2e2c">Bynder</text>
+        <line x1="116" y1="35" x2="154" y2="35" stroke="#b8b7b3" stroke-width="1" marker-end="url(#ag)"/>
+        <rect x="156" y="14" width="80" height="42" rx="8" fill="#f7f7f5" stroke="#d8d7d3" stroke-width="0.75"/><text x="196" y="39" text-anchor="middle" font-size="11" font-weight="600" fill="#2e2e2c">Datago</text>
+        <line x1="236" y1="35" x2="264" y2="35" stroke="#b8b7b3" stroke-width="1" marker-end="url(#ag)"/>
+        <rect x="266" y="14" width="80" height="42" rx="8" fill="#f7f7f5" stroke="#d8d7d3" stroke-width="0.75"/><text x="306" y="39" text-anchor="middle" font-size="11" font-weight="600" fill="#2e2e2c">Akeneo</text>
+        <line x1="346" y1="35" x2="374" y2="35" stroke="#b8b7b3" stroke-width="1" marker-end="url(#ag)"/>
+        <rect x="376" y="14" width="70" height="42" rx="8" fill="#f7f7f5" stroke="#d8d7d3" stroke-width="0.75"/><text x="411" y="39" text-anchor="middle" font-size="11" font-weight="600" fill="#2e2e2c">Shopify</text>
+        <rect x="16" y="80" width="100" height="32" rx="6" fill="#f7f7f5" stroke="#d8d7d3" stroke-width="0.75"/><text x="66" y="100" text-anchor="middle" font-size="10" fill="#4a4a47">Server</text>
+        <text x="66" y="126" text-anchor="middle" font-size="9" fill="#8a8985" font-style="italic">backup</text>
+        <rect x="156" y="80" width="100" height="32" rx="6" fill="#f7f7f5" stroke="#d8d7d3" stroke-width="0.75"/><text x="206" y="100" text-anchor="middle" font-size="10" fill="#4a4a47">Elastic</text>
+        <text x="206" y="126" text-anchor="middle" font-size="9" fill="#8a8985" font-style="italic">wholesale</text>
+      </svg></div>
+      <div class="points-title pain">Pain points</div>
+      <div class="points-list">
+        <div class="point-item"><span class="point-icon pain">&times;</span><span class="point-text">Versioning failures cascade through the entire Datago &rarr; Akeneo &rarr; Shopify chain</span></div>
+        <div class="point-item"><span class="point-icon pain">&times;</span><span class="point-text">Post-approval distribution to server, Elastic, and Bynder is manual and disconnected</span></div>
+        <div class="point-item"><span class="point-icon pain">&times;</span><span class="point-text">Bynder analytics dashboard has never worked since onboarding</span></div>
+      </div>
+    </div>
+    <div class="side side-air">
+      <div class="side-label"><span class="side-dot air"></span><span class="side-label-text air">On Air &mdash; proposed workflow</span></div>
+      <p class="side-desc">In full consolidation, Air replaces Bynder as the DAM and central distribution hub. AI variant creation auto-generates crops based on naming conventions. Brand kits and canvases enable campaign packaging. Approved assets distribute from Air to all destinations &mdash; Akeneo/Shopify, server, and wholesale. Only pursued if the business case is compelling.</p>
+      <div class="flow-steps">
+        <div class="flow-step normal"><span class="flow-step-num">01</span><span class="flow-step-label">Assets approved in Air</span></div>
+        <div class="flow-step auto"><span class="flow-step-num">02</span><span class="flow-step-label">AI auto-generates crop variants</span><span class="flow-badge auto">Auto</span></div>
+        <div class="flow-step auto"><span class="flow-step-num">03</span><span class="flow-step-label">Campaign brand kits + canvases</span><span class="flow-badge auto">Auto</span></div>
+        <div class="flow-step auto"><span class="flow-step-num">04</span><span class="flow-step-label">Push to Akeneo / Shopify</span><span class="flow-badge auto">Auto</span></div>
+      </div>
+      <div class="diagram-wrap"><svg viewBox="0 0 460 120" xmlns="http://www.w3.org/2000/svg">
+        <rect x="16" y="32" width="200" height="42" rx="8" fill="#E1F5EE" stroke="#0F6E56" stroke-width="0.75"/><text x="116" y="50" text-anchor="middle" font-size="12" font-weight="600" fill="#085041">Air</text><text x="116" y="64" text-anchor="middle" font-size="10" fill="#0F6E56">DAM + variants + brand kits</text>
+        <line x1="216" y1="53" x2="254" y2="53" stroke="#0F6E56" stroke-width="1" marker-end="url(#av)"/>
+        <rect x="256" y="32" width="80" height="42" rx="8" fill="#f7f7f5" stroke="#d8d7d3" stroke-width="0.75"/><text x="296" y="57" text-anchor="middle" font-size="11" font-weight="600" fill="#2e2e2c">Akeneo</text>
+        <line x1="336" y1="53" x2="364" y2="53" stroke="#0F6E56" stroke-width="1" marker-end="url(#av)"/>
+        <rect x="366" y="32" width="80" height="42" rx="8" fill="#f7f7f5" stroke="#d8d7d3" stroke-width="0.75"/><text x="406" y="57" text-anchor="middle" font-size="11" font-weight="600" fill="#2e2e2c">Shopify</text>
+      </svg></div>
+      <div class="points-title win">Wins</div>
+      <div class="points-list">
+        <div class="point-item"><span class="point-icon win">&check;</span><span class="point-text">One platform for working files, review, metadata, and distribution</span></div>
+        <div class="point-item"><span class="point-icon win">&check;</span><span class="point-text">AI variant creation replaces manual cropping + Datago connector</span></div>
+        <div class="point-item"><span class="point-icon win">&check;</span><span class="point-text">Brand kits / canvases replace Bynder campaign landing pages</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SUMMARY -->
+<section class="summary">
+  <h2>Implementation <em>summary</em></h2>
+  <div class="summary-grid">
+    <div class="summary-card">
+      <span class="phase-badge crawl" style="margin-bottom:12px;display:inline-block">Crawl</span>
+      <h3>Frame.io replacement</h3>
+      <div class="time">Immediate</div>
+      <p>Replace Frame.io immediately. Studio drop-off via collection forms, review &amp; approval in Air with kanban + markup tools, automated capture tracking and reporting, Slack notifications. Tech buyout program covers overlap &mdash; Air free until Frame.io contract expires in October.</p>
+    </div>
+    <div class="summary-card">
+      <span class="phase-badge walk" style="margin-bottom:12px;display:inline-block">Walk</span>
+      <h3>Integrations &amp; automations</h3>
+      <div class="time">6 months</div>
+      <p>Jira bi-directional sync with auto-created Air boards, Pixelz API integration for sending and receiving retouched assets, automated triage via board rules.</p>
+    </div>
+    <div class="summary-card">
+      <span class="phase-badge run" style="margin-bottom:12px;display:inline-block">Run</span>
+      <h3>Bynder consolidation</h3>
+      <div class="time">1 year</div>
+      <p>Replace Bynder (only if business case is compelling). Bulk CSV metadata pipeline, FPO watermark workflow migration, AI variant creation, campaign brand kits, Akeneo/Shopify integration.</p>
+    </div>
+  </div>
+</section>
+
+</body>
+</html>
